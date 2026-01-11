@@ -7,14 +7,11 @@ namespace Authentication_Core.Repositories
 {
     public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : class
     {
-
         public RepositoryBase(AppDbContext context)
         {
             _Entity = context.Set<TEntity>();
-            _Context = context;
         }
 
-        public AppDbContext _Context { get; }
         private DbSet<TEntity> _Entity { get; }
 
 
@@ -28,10 +25,12 @@ namespace Authentication_Core.Repositories
         {
             return await _Entity.SingleOrDefaultAsync(predicate);
         }
+
         public async Task<TEntity> GetById(int id)
         {
             return await _Entity.FindAsync(id);
         }
+
         public async Task<bool> Exists(Expression<Func<TEntity, bool>> predicate)
         {
             return await _Entity.AnyAsync(predicate);

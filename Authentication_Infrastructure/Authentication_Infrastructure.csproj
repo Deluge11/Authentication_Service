@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Authentication_Application\Authentication_Application.csproj" />
     <ProjectReference Include="..\Authentication_Core\Authentication_Core.csproj" />
   </ItemGroup>
 
