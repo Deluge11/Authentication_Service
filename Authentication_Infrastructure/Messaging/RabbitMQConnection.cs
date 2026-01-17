@@ -1,72 +1,92 @@
-﻿using Authentication_Core.Interfaces;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using ConstantsLib.Exchanges;
+using ConstantsLib.Interfaces;
 using RabbitMQ.Client;
-using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
-
-
-
-namespace Authentication_Infrastructure.Messaging
+public class RabbitMQConnection : IDisposable, IAsyncDisposable
 {
-    public class RabbitMQConnection : IDisposable
+    private readonly IConnectionFactory _connectionFactory;
+    private IConnection? _connection;
+    private bool _disposed;
+    private readonly SemaphoreSlim _connectionLock = new SemaphoreSlim(1, 1);
+
+    public RabbitMQConnection(IConnectionFactory connectionFactory)
     {
-        private readonly IConnectionFactory _connectionFactory;
-        private IConnection? _connection;
-        private bool _disposed;
-        private readonly SemaphoreSlim _connectionLock = new SemaphoreSlim(1, 1);
-        public RabbitMQConnection(IConnectionFactory connectionFactory)
-        {
-            _connectionFactory = connectionFactory;
-        }
+        _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+    }
 
-        public bool IsConnected => _connection != null && _connection.IsOpen && !_disposed;
+    public bool IsConnected => _connection != null && _connection.IsOpen && !_disposed;
 
-        public async Task<bool> TryConnect()
+    public async Task<bool> TryConnect(CancellationToken cancellationToken = default)
+    {
+        if (IsConnected) return true;
+
+        await _connectionLock.WaitAsync(cancellationToken);
+
+        try
         {
             if (IsConnected) return true;
 
-            await _connectionLock.WaitAsync();
+            _connection = await _connectionFactory.CreateConnectionAsync(cancellationToken: cancellationToken);
 
+            return IsConnected;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+        finally
+        {
+            _connectionLock.Release();
+        }
+    }
+
+    public async Task<IChannel> CreateChannel(CancellationToken cancellationToken = default)
+    {
+        if (!IsConnected && !await TryConnect(cancellationToken))
+        {
+            throw new InvalidOperationException("Cannot create RabbitMQ channel: connection failed.");
+        }
+
+        return await _connection!.CreateChannelAsync(null, cancellationToken);
+    }
+
+    public async Task InitializeInfrastructure(CancellationToken cancellationToken = default)
+    {
+        await using var channel = await CreateChannel(cancellationToken);
+
+        IExchange exchange = new AuthExchange();
+
+        await channel.ExchangeDeclareAsync(
+            exchange.Name,
+            exchange.Type,
+            exchange.IsDurable, 
+            cancellationToken: cancellationToken);
+
+    }
+
+    public void Dispose()
+    {
+        DisposeAsync().AsTask().GetAwaiter().GetResult();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
+
+        _disposed = true;
+
+        if (_connection != null)
+        {
             try
             {
-                if (IsConnected) return true;
-
-                _connection = await _connectionFactory.CreateConnectionAsync();
-
-                return IsConnected;
+                await _connection.DisposeAsync();
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Cannot connect with RabbitMQ : {ex.Message}");
-                return false;
-            }
-            finally
-            {
-                _connectionLock.Release();
+                // Log if needed
             }
         }
 
-        public async Task<IChannel> CreateChannel()
-        {
-            if (!IsConnected && !await TryConnect())
-            {
-                throw new InvalidOperationException("Cannot Create RabbitMQ Channel");
-            }
-
-            return await _connection!.CreateChannelAsync();
-        }
-        public async Task InitializeInfrastructure()
-        {
-            using var channel = await CreateChannel();
-
-            await channel.ExchangeDeclareAsync("auth.events", ExchangeType.Topic, durable: true);
-        }
-
-        public void Dispose()
-        {
-            _disposed = true;
-            _connection?.Dispose();
-        }
+        _connectionLock?.Dispose();
     }
 }

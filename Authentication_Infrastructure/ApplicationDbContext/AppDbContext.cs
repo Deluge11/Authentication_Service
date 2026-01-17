@@ -21,9 +21,6 @@ namespace Authentication_Infrastructure.ApplicationDbContext
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Account>()
-                .Property(u => u.Id)
-                .ValueGeneratedNever();
 
             modelBuilder.Entity<Account>()
                 .HasMany(a => a.Roles)

@@ -16,7 +16,7 @@ namespace Authentication_Infrastructure.Messaging
             _connection = connection;
         }
 
-        public async Task Publish<T>(T message, string exName, string routingKey) where T : IBaseEvent
+        public async Task Publish<T>(T message) where T : IBaseEvent
         {
             if (!_connection.IsConnected) await _connection.TryConnect();
 
@@ -24,12 +24,13 @@ namespace Authentication_Infrastructure.Messaging
 
             var json = JsonSerializer.Serialize(message);
             var body = Encoding.UTF8.GetBytes(json);
+            var properties = new BasicProperties { Persistent = true };
 
             await channel.BasicPublishAsync(
-               exchange: exName,
-               routingKey: routingKey,
+               exchange: message.Exchange.Name,
+               routingKey: message.RoutingKey,
                mandatory: true,
-               basicProperties: new BasicProperties { Persistent = true },
+               properties,
                body: body,
                cancellationToken: default
                );

@@ -4,6 +4,8 @@ using Authentication_Core.Interfaces;
 using MediatR;
 using ConstantsLib.Events;
 using ConstantsLib.Enums;
+using ConstantsLib.Interfaces;
+using ConstantsLib.Exchanges;
 
 namespace Authentication_Application.Accounts.Commands.Register
 {
@@ -39,12 +41,17 @@ namespace Authentication_Application.Accounts.Commands.Register
             var hashedPassword = IdentityService.GenerateHash(request.password);
             var defaultRole = await UnitOfWork.Roles.Find(r => r.Id == (int)EnRole.Customer);
 
+            if (defaultRole != null)
+            {
+                UnitOfWork.Roles.Attach(defaultRole);
+            }
+
             var newAccount = new Account
             {
                 Name = request.name,
                 Email = request.email,
                 Password = hashedPassword,
-                Roles = new List<Role> { defaultRole }
+                Roles = defaultRole == null ? new List<Role>() : new List<Role> { defaultRole }
             };
 
             await UnitOfWork.Accounts.Add(newAccount);
@@ -52,14 +59,14 @@ namespace Authentication_Application.Accounts.Commands.Register
             if (await UnitOfWork.Complete() == 0)
                 return null;
 
-            var newEvent = new UserCreatedEvent
+            var userCreatedEvent = new UserCreatedEvent
             {
                 UserId = newAccount.Id,
-                Name= newAccount.Name,
-                Email = newAccount.Email
+                Name = newAccount.Name,
+                Email = newAccount.Email,
             };
 
-            await EventBus.Publish(newEvent, "auth.events", "auth.user.created");
+            await EventBus.Publish(userCreatedEvent);
 
             var permissions = await UnitOfWork.Permissions.GetByUserId(newAccount.Id);
 

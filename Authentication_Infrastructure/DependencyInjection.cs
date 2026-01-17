@@ -1,16 +1,16 @@
 ﻿using Authentication_Core.Interfaces;
 using Authentication_Infrastructure.ApplicationDbContext;
+using Authentication_Infrastructure.Messaging;
 using Authentication_Infrastructure.Options;
 using Authentication_Infrastructure.Security;
+using ConstantsLib.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Authentication_Infrastructure.Messaging;
 using RabbitMQ.Client;
+using System.Text;
 
 
 namespace Authentication_Infrastructure

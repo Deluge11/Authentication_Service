@@ -12,5 +12,6 @@ namespace Authentication_Core.Interfaces
         Task<TEntity> Find(Expression<Func<TEntity, bool>> predicate);
         Task<bool> Exists(Expression<Func<TEntity, bool>> predicate);
         Task<TEntity> Add(TEntity entity);
+        public void Attach(TEntity entity);
     }
 }

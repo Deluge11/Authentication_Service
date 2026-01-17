@@ -23,7 +23,7 @@ namespace Authentication_Core.Repositories
 
         public async Task<TEntity> Find(Expression<Func<TEntity, bool>> predicate)
         {
-            return await _Entity.SingleOrDefaultAsync(predicate);
+            return await _Entity.AsNoTracking().SingleOrDefaultAsync(predicate);
         }
 
         public async Task<TEntity> GetById(int id)
@@ -34,6 +34,11 @@ namespace Authentication_Core.Repositories
         public async Task<bool> Exists(Expression<Func<TEntity, bool>> predicate)
         {
             return await _Entity.AnyAsync(predicate);
+        }
+
+        public void Attach(TEntity entity)
+        {
+            _Entity.Attach(entity);
         }
     }
 }
