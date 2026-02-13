@@ -9,6 +9,6 @@ namespace Authentication_Core.Interfaces
 {
     public interface IRepositoryPermissions : IRepositoryBase<Permission>
     {
-        Task<List<int>> GetByUserId(int userId);
+        Task<long> GetByUserId(int userId);
     }
 }

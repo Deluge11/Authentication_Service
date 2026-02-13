@@ -23,18 +23,15 @@ namespace Authentication_Infrastructure.Repositories
 
         public AppDbContext Context { get; }
 
-        public async Task<List<int>> GetByUserId(int userId)
+        public async Task<long> GetByUserId(int userId)
         {
-            var permissionIds =
-            await Context.Accounts
-           .Where(a => a.Id == userId)
-           .SelectMany(a => a.Roles)
-           .SelectMany(r => r.Permissions)
-           .Select(p => p.Id)
-           .Distinct()
-           .ToListAsync();
 
-            return permissionIds;
+            return await Context.Accounts
+                .Where(a => a.Id == userId)
+                .SelectMany(a => a.Roles)
+                .SelectMany(r => r.Permissions)
+                .Select(p => p.BitValue)
+                .SumAsync();
         }
 
 

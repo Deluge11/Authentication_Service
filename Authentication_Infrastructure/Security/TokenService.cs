@@ -20,19 +20,15 @@ namespace Authentication_Infrastructure.Security
 
         public JwtOptions JwtOptions { get; }
 
-        public string GenerateJwtToken(int userId, List<int> permissions)
+        public string GenerateJwtToken(int userId, long permissions)
         {
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim("permissions", permissions.ToString())
+
             };
 
-            foreach (var permission in permissions)
-            {
-                claims.Add(new Claim("permission", permission.ToString()));
-            }
-
-            var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Issuer = JwtOptions.Issuer,
@@ -42,11 +38,12 @@ namespace Authentication_Infrastructure.Security
                 Subject = new ClaimsIdentity(claims)
             };
 
+            var tokenHandler = new JwtSecurityTokenHandler();
             var securityToken = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(securityToken);
         }
 
-    
+
     }
 }

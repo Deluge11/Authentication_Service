@@ -10,6 +10,7 @@ namespace Authentication_Core.Entities
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public long BitValue { get; set; }
         public ICollection<Role> Roles { get; set; } = new List<Role>();
     }
 }

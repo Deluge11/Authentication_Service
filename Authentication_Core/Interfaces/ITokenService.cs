@@ -8,6 +8,6 @@ namespace Authentication_Core.Interfaces
 {
     public interface ITokenService
     {
-        string GenerateJwtToken(int userId, List<int> permissions);
+        string GenerateJwtToken(int userId, long permissions);
     }
 }

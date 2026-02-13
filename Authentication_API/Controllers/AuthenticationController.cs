@@ -1,12 +1,9 @@
 ﻿using Authentication_Application.Accounts.Commands.Login;
 using Authentication_Application.Accounts.Commands.Register;
 using Authentication_Application.DTOs;
-using Authentication_Core.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using System.Security;
 using System.Security.Claims;
 
 namespace Authentication_API.Controllers
@@ -28,13 +25,10 @@ namespace Authentication_API.Controllers
         public IActionResult ValidateToken()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var permissions = User.FindAll("permission").Select(c => c.Value);
-
-            var permissionsString = string.Join(",", permissions);
+            var permissions = User.FindFirst("permissions")?.Value;
 
             Response.Headers.Append("X-User-Id", userId);
-            Response.Headers.Append("X-Permissions", permissionsString);
+            Response.Headers.Append("X-Permissions", permissions);
 
             return Ok();
         }

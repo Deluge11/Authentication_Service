@@ -39,18 +39,20 @@ namespace Authentication_Infrastructure
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOption.SigningKey))
                     };
                 });
+            services.AddSingleton<RabbitMQConnection>();
+            services.AddSingleton<IEventBus, RabbitMQPublisher>();
+
+            services.AddHostedService<RabbitMQInitializer>();
 
             services.AddSingleton(jwtOption);
             services.AddScoped<IIdentityService, IdentityService>();
-            services.AddSingleton<RabbitMQConnection>();
-            services.AddHostedService<RabbitMQInitializer>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<IEventBus, RabbitMQPublisher>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddSingleton<IConnectionFactory>(sp =>
             {
                 return new ConnectionFactory()
                 {
+                    //Uri = new Uri(configuration["RabbitMQ:Uri"] ?? rabbitmqOptions.Uri)
                     Uri = new Uri(rabbitmqOptions.Uri)
                 };
             });

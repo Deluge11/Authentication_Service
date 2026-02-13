@@ -8,7 +8,7 @@
 
  
   <ItemGroup>
-    <PackageReference Include="ConstantsLib" Version="3.0.0" />
+    <PackageReference Include="ConstantsLib" Version="3.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.11">
